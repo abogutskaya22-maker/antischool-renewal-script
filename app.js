@@ -4,16 +4,15 @@ const breadcrumb=document.getElementById('breadcrumb');
 const backBtn=document.getElementById('backBtn');
 const restartBtn=document.getElementById('restartBtn');
 const objectionBtn=document.getElementById('objectionBtn');
-
 function go(next,label){state.history.push(state.current);state.current=next;render(label)}
 function restart(){state.history=[];state.current='start';render()}
 function back(){if(!state.history.length)return;state.current=state.history.pop();render()}
 function btn(text,next){return `<button class="choice" onclick="go('${next}')">${text}</button>`}
 const say=(...lines)=>`<div class="script">${lines.map(line=>`<div class="line">${line}</div>`).join('')}</div>`;
-
 const screens={
 start:()=>`<span class="tag">Старт дзвінка</span><h2>Привітання</h2>${say('Добрий день, <b>[ім’я студента]</b>!','Вам телефонує <b>[ім’я менеджера]</b> із сервіс-відділу АнтиШколи.','Чи буде у вас 5 хвилин поспілкуватися?')}<div class="grid">${btn('Так, зручно','goal')}${btn('Ні, незручно','callback')}</div>`,
-callback:()=>`<span class="tag">Домовленість</span><h2>Переносимо розмову</h2>${say('Розумію.','Коли вам буде зручно повернутися до розмови — сьогодні після <b>[час]</b> чи завтра?')}<div class="hint">Зафіксуйте конкретний день і час.</div>${btn('Домовились про час','finish')}`,
+callback:()=>`<span class="tag">Домовленість</span><h2>Переносимо розмову</h2>${say('Розумію.','Коли вам буде зручно повернутися до розмови — сьогодні після <b>[час]</b> чи завтра?')}<div class="hint">Зафіксуйте конкретний день і час.</div>${btn('Домовились про час','callbackFinish')}`,
+callbackFinish:()=>`<span class="tag">Готово</span><h2>Розмову завершено</h2>${say('Дякую.','До звʼязку <b>[домовлений час]</b>.','Гарного дня!')}<div class="success">Зафіксуйте домовлений час повторного дзвінка та наступну задачу в CRM.</div>${btn('Новий дзвінок','start')}`,
 goal:()=>`<span class="tag">Результат і ціль</span><h2>Повертаємось до старту</h2><p>Порівнюємо не лише відчуття студента, а весь шлях навчання.</p><div class="steps"><div class="step"><b>🎯 Ціль на старті</b><br>Що студент хотів отримати від навчання?</div><div class="step"><b>📝 Фідбек із пробного</b><br>Які труднощі, рівень і сильні сторони були зафіксовані на старті?</div><div class="step"><b>📈 Поточний фідбек викладача</b><br>Що вже змінилося, що виходить краще, над чим ще працювати?</div></div>${say('На старті вашою ціллю було <b>[ціль]</b>.','На пробному ми фіксували, що було складно з <b>[навичка]</b>.','Зараз викладач відзначає <b>[конкретний прогрес]</b>.','Як ви самі оцінюєте результат?')}<div class="grid">${btn('✅ Ціль досягнута','scenario1')}${btn('⏳ Ціль ще не досягнута','scenario2')}${btn('😕 Щось у процесі не підійшло','scenario3')}${btn('⭐ Ціль досягнута, продовжувати не планує','scenario4')}</div><div class="mini">Якщо студент каже «не бачу прогресу» — використайте окрему гілку аудиту.</div>${btn('Студент не бачить прогресу','audit')}`,
 audit:()=>`<span class="tag">Не бачить прогресу</span><h2>Показуємо зміни через факти</h2>${say('На пробному уроці ми фіксували, що вам було складно з <b>[тема/навичка]</b>.','Зараз викладач відзначає, що <b>[конкретний прогрес]</b>.','Тобто зміни вже є, навіть якщо в процесі вони не завжди так помітні.')}${say('Щоб оцінити результат не лише за відчуттями, можемо пройти аудит знань.','Так буде видно, що вже добре засвоєно, а над чим ще варто попрацювати.')}<div class="grid">${btn('Погоджується на аудит','afterAudit')}${btn('Не хоче аудит','continueQ')}</div>`,
 afterAudit:()=>`<span class="tag">Аудит</span><h2>Фіксуємо наступний крок</h2><div class="success">Домовляємось про аудит → після результату визначаємо наступний крок у навчанні.</div>${btn('Перейти до рішення про продовження','continueQ')}`,
@@ -30,18 +29,10 @@ objPower:()=>`<span class="tag">Світло / зв’язок</span><h2>Уто�
 objOther:()=>`<span class="tag">Інше заперечення</span><h2>Універсальний маршрут</h2>${say('Що зараз найбільше зупиняє вас від продовження?')}${say('Якщо вирішити саме це питання, ви були б готові продовжити?')}<div class="hint">З’ясуйте можливості → дайте одне рішення → перевірте реакцію.</div>${btn('Перейти до домовленості','agreement')}`,
 agreement:()=>`<span class="tag">Фінал</span><h2>Фіксуємо домовленість</h2><div class="steps"><div class="step"><b>Готовий оплачувати</b> → пакет + посилання + дата оплати.</div><div class="step"><b>Потрібно подумати</b> → скільки часу потрібно + точна дата повторного контакту.</div><div class="step"><b>Потрібні зміни</b> → що змінюємо + коли повертаємось із відповіддю.</div><div class="step"><b>Точно не продовжує</b> → реальна причина + ЗНР / реанімація.</div></div><div class="grid">${btn('Готовий оплачувати','pay')}${btn('Потрібно подумати','think')}${btn('Потрібні зміни','changes')}${btn('Не продовжує','noContinue')}</div>`,
 pay:()=>`<span class="tag">Оплата</span><h2>Фіксуємо дедлайн</h2>${say('Тоді надсилаю реквізити для оплати.','Скажіть, будь ласка, коли можу очікувати підтвердження платежу?')}${btn('Завершити','finish')}`,
-think:()=>`<span class="tag">Подумати</span><h2>Не залишаємо рішення без дати</h2>${say('Добре, розумію.','Скільки часу вам буде комфортно взяти на рішення?','Давайте одразу домовимось, коли я повернусь до вас.')} ${btn('Завершити','finish')}`,
+think:()=>`<span class="tag">Подумати</span><h2>Не залишаємо рішення без дати</h2>${say('Добре, розумію.','Скільки часу вам буде комфортно взяти на рішення?','Давайте одразу домовимось, коли я повернусь до вас.')}${btn('Завершити','finish')}`,
 changes:()=>`<span class="tag">Зміни</span><h2>Менеджер бере дію на себе</h2>${say('Домовились.','Я уточню / організую <b>[дія]</b> і повернусь до вас <b>[дата / час]</b>.')}${btn('Завершити','finish')}`,
 noContinue:()=>`<span class="tag">Не продовжує</span><h2>Фіксуємо реальну причину</h2>${say('Дякую, що поділилися.','Для нас важливо розуміти реальну причину, щоб правильно зафіксувати ваш досвід.')}<div class="hint">Зафіксуйте причину → ЗНР / реанімація.</div>${btn('Завершити','finish')}`,
 finish:()=>`<span class="tag">Готово</span><h2>Розмову завершено</h2><div class="success">Зафіксуйте результат у CRM, домовленості, дедлайн і наступну задачу.</div>${btn('Новий дзвінок','start')}`
 };
-
-function render(){
- card.innerHTML=screens[state.current]();
- breadcrumb.textContent=`Живий скрипт › ${card.querySelector('h2')?.textContent||''}`;
- backBtn.disabled=!state.history.length;
-}
-backBtn.addEventListener('click',back);
-restartBtn.addEventListener('click',restart);
-objectionBtn.addEventListener('click',()=>go('objections'));
-render();
+function render(){card.innerHTML=screens[state.current]();breadcrumb.textContent=`Живий скрипт › ${card.querySelector('h2')?.textContent||''}`;backBtn.disabled=!state.history.length;}
+backBtn.addEventListener('click',back);restartBtn.addEventListener('click',restart);objectionBtn.addEventListener('click',()=>go('objections'));render();
